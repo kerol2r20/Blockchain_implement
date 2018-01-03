@@ -1,3 +1,4 @@
+import Promise = require("bluebird");
 import crypto = require("crypto");
 
 export class Block {
@@ -15,20 +16,23 @@ export class Block {
         this.nonce = 0;
         this.hash = this.doubleSha256();
     }
-    public mining(difficult: number): void {
-        let pat = "";
-        for (let i = 0; i < difficult; i++) {
-            pat += "0";
-        }
-        for (let i = 0; i < 64 - difficult; i++) {
-            pat += "f";
-        }
-        let newHash = this.hash;
-        while (newHash > pat) {
-            this.nonce += 1;
-            newHash = this.doubleSha256();
-        }
-        this.hash = newHash;
+    public mining(difficult: number = 3): Promise<null> {
+        return new Promise((res) => {
+            let pat = "";
+            for (let i = 0; i < difficult; i++) {
+                pat += "0";
+            }
+            for (let i = 0; i < 64 - difficult; i++) {
+                pat += "f";
+            }
+            let newHash = this.hash;
+            while (newHash > pat) {
+                this.nonce += 1;
+                newHash = this.doubleSha256();
+            }
+            this.hash = newHash;
+            res();
+        });
     }
     public doubleSha256(): string {
         const secret = "f30a5884d9d364849d7ba0f64c102785426cbaa866dfd97101c8fdaeff0637cd";
