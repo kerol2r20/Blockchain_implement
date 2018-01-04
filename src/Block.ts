@@ -1,6 +1,13 @@
 import Promise = require("bluebird");
 import crypto = require("crypto");
 
+export interface BlockElement {
+    blockNumber: number;
+    previousHash: string;
+    timestamp?: Date;
+    data?: string;
+}
+
 export class Block {
     private blockNumber: number;
     private previousHash: string;
@@ -8,13 +15,16 @@ export class Block {
     private data: string;
     private hash: string;
     private nonce: number;
-    constructor(blockNumber: number, previousHash: string, data: any = "") {
-        this.blockNumber = blockNumber;
-        this.previousHash = previousHash;
-        this.timestamp = new Date();
-        this.data = data;
+    constructor(block: BlockElement) {
+        this.blockNumber = block.blockNumber;
+        this.previousHash = block.previousHash;
+        this.timestamp = block.timestamp ? block.timestamp : new Date();
+        this.data = block.data ? block.data : "";
         this.nonce = 0;
         this.hash = this.doubleSha256();
+    }
+    get getHash(): string {
+        return this.hash;
     }
     public mining(difficult: number = 3): Promise<null> {
         return new Promise((res) => {
@@ -34,7 +44,17 @@ export class Block {
             res();
         });
     }
-    public doubleSha256(): string {
+    public display(): void {
+        console.log(`
+========== Block #${this.blockNumber} ==========
+hash: ${this.hash}
+previousHash: ${this.previousHash}
+data: ${this.data}
+timestamp: ${this.timestamp.toTimeString()}
+nonce: ${this.nonce}
+        `);
+    }
+    private doubleSha256(): string {
         const secret = "f30a5884d9d364849d7ba0f64c102785426cbaa866dfd97101c8fdaeff0637cd";
         const firstResult = crypto
             .createHmac("sha256", secret)
